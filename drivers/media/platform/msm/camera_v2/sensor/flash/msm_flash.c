@@ -1,4 +1,4 @@
-/* Copyright (c) 2009-2017, The Linux Foundation. All rights reserved.
+/* Copyright (c) 2009-2019, The Linux Foundation. All rights reserved.
  * Copyright (C) 2018 XiaoMi, Inc.
  *
  * This program is free software; you can redistribute it and/or modify
@@ -17,6 +17,7 @@
 #include <linux/module.h>
 #include <linux/of_gpio.h>
 #include "msm_flash.h"
+#include "msm_camera_io_util.h"
 #include "msm_camera_dt_util.h"
 #include "msm_cci.h"
 
@@ -570,6 +571,9 @@ static int32_t msm_flash_init(
 			__func__, __LINE__,
 			flash_data->cfg.flash_init_info->flash_driver_type);
 	}
+
+	if (flash_ctrl->platform_flash_init)
+		flash_ctrl->platform_flash_init(flash_ctrl, flash_data);
 
 	if (flash_ctrl->func_tbl->camera_flash_init) {
 		rc = flash_ctrl->func_tbl->camera_flash_init(
@@ -1251,6 +1255,8 @@ static int msm_camera_flash_i2c_probe(struct i2c_client *client,
 		kfree(flash_ctrl);
 		return -EINVAL;
 	}
+	if (flash_ctrl->flash_driver_type == FLASH_DRIVER_GPIO)
+		platform_set_drvdata(pdev, flash_ctrl);
 
 	flash_ctrl->flash_state = MSM_CAMERA_FLASH_RELEASE;
 	flash_ctrl->power_info.dev = &client->dev;
@@ -1377,6 +1383,11 @@ static struct i2c_driver msm_flash_i2c_driver = {
 		.of_match_table = msm_flash_i2c_dt_match,
 	},
 };
+
+int32_t camera_flash_platform_probe(struct platform_device *pdev)
+{
+	return msm_flash_platform_probe(pdev);
+}
 
 MODULE_DEVICE_TABLE(of, msm_flash_dt_match);
 
