@@ -1255,9 +1255,7 @@ static int msm_camera_flash_i2c_probe(struct i2c_client *client,
 		kfree(flash_ctrl);
 		return -EINVAL;
 	}
-	if (flash_ctrl->flash_driver_type == FLASH_DRIVER_GPIO)
-		platform_set_drvdata(pdev, flash_ctrl);
-
+	
 	flash_ctrl->flash_state = MSM_CAMERA_FLASH_RELEASE;
 	flash_ctrl->power_info.dev = &client->dev;
 	flash_ctrl->flash_device_type = MSM_CAMERA_I2C_DEVICE;
@@ -1321,6 +1319,8 @@ static int32_t msm_flash_platform_probe(struct platform_device *pdev)
 		kfree(flash_ctrl);
 		return -EINVAL;
 	}
+	if (flash_ctrl->flash_driver_type == FLASH_DRIVER_GPIO)
+		platform_set_drvdata(pdev, flash_ctrl);
 
 	flash_ctrl->flash_state = MSM_CAMERA_FLASH_RELEASE;
 	flash_ctrl->power_info.dev = &flash_ctrl->pdev->dev;
