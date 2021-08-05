@@ -822,6 +822,43 @@ static int32_t msm_flash_config(struct msm_flash_ctrl_t *flash_ctrl,
 	return rc;
 }
 
+static int32_t msm_flash_query_data(struct msm_flash_ctrl_t *flash_ctrl,
+	void *argp)
+{
+	int32_t rc = -EINVAL, i = 0;
+	struct msm_flash_query_data_t *flash_query =
+		(struct msm_flash_query_data_t *) argp;
+
+	CDBG("Enter %s type %d\n", __func__, flash_query->query_type);
+
+	switch (flash_query->query_type) {
+	case FLASH_QUERY_CURRENT:
+		if (flash_ctrl->func_tbl && flash_ctrl->func_tbl->
+				camera_flash_query_current != NULL)
+			rc = flash_ctrl->func_tbl->
+				camera_flash_query_current(
+				flash_ctrl, flash_query);
+		else {
+			flash_query->max_avail_curr = 0;
+			for (i = 0; i < flash_ctrl->flash_num_sources; i++) {
+				flash_query->max_avail_curr +=
+					flash_ctrl->flash_op_current[i];
+			}
+			rc = 0;
+			CDBG("%s: max_avail_curr: %d\n", __func__,
+				flash_query->max_avail_curr);
+		}
+		break;
+	default:
+		rc = -EFAULT;
+		break;
+	}
+
+	CDBG("Exit %s type %d\n", __func__, flash_query->query_type);
+
+	return rc;
+}
+
 static long msm_flash_subdev_ioctl(struct v4l2_subdev *sd,
 	unsigned int cmd, void *arg)
 {
